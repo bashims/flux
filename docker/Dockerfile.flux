@@ -1,3 +1,13 @@
+FROM golang:1.12.3-alpine3.9 as builder
+
+ENV GOPATH /go
+ENV USER root
+
+RUN set -ex && \
+    apk --no-cache add git gcc libc-dev && \
+    go get github.com/bashims/go-codecommit/cmd/codecommit && \
+    echo "Build of codecommit complete."
+
 FROM alpine:3.9
 
 WORKDIR /home/flux
@@ -14,6 +24,8 @@ RUN sh /home/flux/known_hosts.sh /etc/ssh/ssh_known_hosts && \
 COPY ./ssh_config /etc/ssh/ssh_config
 
 COPY ./kubectl /usr/local/bin/
+
+COPY --from=builder /go/bin/codecommit /usr/local/bin/.
 
 # These are pretty static
 LABEL maintainer="Weaveworks <help@weave.works>" \
